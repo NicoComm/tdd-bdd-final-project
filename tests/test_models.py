@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -154,6 +154,18 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].id, original_id)
         self.assertEqual(products[0].description, "testing")
+    
+    def test_update_product_with_empty_id(self):
+        """It should raise DataValidationError when updating without an ID"""
+
+        product = ProductFactory()
+        product.id = None
+
+        self.assertRaises(
+            DataValidationError,
+            product.update
+        )
+
 
     def test_delete_a_prduct(self):
         """It should Delete a Product"""
@@ -210,3 +222,28 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for p in found:
             self.assertEqual(p.category, category)
+
+    def test_deserialize_invalid_available_type(self):
+        """It should raise DataValidationError for an invalid available type"""
+
+        product = ProductFactory()
+        data = product.serialize()
+        data["available"] = "true"
+
+        with self.assertRaises(DataValidationError) as context:
+            product.deserialize(data)
+
+        self.assertIn("Invalid type for boolean [available]", str(context.exception))
+
+    def test_deserialize_missing_attribute(self):
+        """It should raise DataValidationError when an attribute is missing"""
+
+        product = ProductFactory()
+        data = product.serialize()
+        del data["name"]
+
+        with self.assertRaises(DataValidationError) as context:
+            product.deserialize(data)
+
+        self.assertIn("Invalid product: missing name", str(context.exception))
+        

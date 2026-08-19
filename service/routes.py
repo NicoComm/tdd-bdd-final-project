@@ -171,7 +171,6 @@ def update_product(product_id):
     found_product.update()
     return found_product.serialize(), status.HTTP_200_OK
 
-
 ######################################################################
 # D E L E T E   A   P R O D U C T
 ######################################################################

@@ -270,6 +270,32 @@ class TestProductRoutes(TestCase):
         for product in data:
             self.assertEqual(product["available"], True)
 
+    def test_update_product_not_found(self):
+        """It should not Update a Product that does not exist"""
+
+        product_id = 0
+        product = ProductFactory()
+
+        response = self.client.put(
+            f"{BASE_URL}/{product_id}",
+            json=product.serialize()
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+
+    def test_delete_product_not_found(self):
+        """It should not Delete a Product that does not exist"""
+
+        product_id = 0
+
+        response = self.client.delete(f"{BASE_URL}/{product_id}")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])      
 
     ######################################################################
     # Utility functions
